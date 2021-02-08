@@ -11,6 +11,5 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/build .
 COPY completeworks.txt .
-COPY static ./static
 
 ENTRYPOINT ./build
