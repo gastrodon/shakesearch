@@ -1,0 +1,17 @@
+---
+
+version: "3"
+
+services:
+    search:
+        build:
+            context: .
+        ports:
+            - 3001:3001
+
+    static:
+        build:
+            context: .
+            dockerfile: Dockerfile.static
+        ports:
+            - 80:80
