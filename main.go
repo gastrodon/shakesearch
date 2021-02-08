@@ -1,38 +1,28 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+	"github.com/gastrodon/groudon/v2"
+
 	"fmt"
 	"index/suffixarray"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
+)
+
+const (
+	ROUTE_SEARCH = "^/search/?$"
 )
 
 func main() {
-	searcher := Searcher{}
-	err := searcher.Load("completeworks.txt")
-	if err != nil {
-		log.Fatal(err)
+	var err error
+	var searcher Searcher = Searcher{}
+	if err = searcher.Load("completeworks.txt"); err != nil {
+		panic(err)
 	}
 
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fs)
-
-	http.HandleFunc("/search", handleSearch(searcher))
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3001"
-	}
-
-	fmt.Printf("Listening on port %s...", port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	groudon.AddHandler("GET", ROUTE_SEARCH, handleSearch(searcher))
+	http.HandleFunc("/", groudon.Route)
+	http.ListenAndServe(":3001", nil)
 }
 
 type Searcher struct {
@@ -40,25 +30,20 @@ type Searcher struct {
 	SuffixArray   *suffixarray.Index
 }
 
-func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		query, ok := r.URL.Query()["q"]
-		if !ok || len(query[0]) < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("missing search query in URL params"))
+func handleSearch(searcher Searcher) func(*http.Request) (int, map[string]interface{}, error) {
+	return func(request *http.Request) (code int, RMap map[string]interface{}, err error) {
+		var query []string
+		var exists bool
+		if query, exists = request.URL.Query()["q"]; !exists || len(query) != 1 {
+			code = 400
 			return
 		}
-		results := searcher.Search(query[0])
-		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		err := enc.Encode(results)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("encoding failure"))
-			return
+
+		code = 200
+		RMap = map[string]interface{}{
+			"results": searcher.Search(query[0]),
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(buf.Bytes())
+		return
 	}
 }
 
