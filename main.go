@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/gastrodon/groudon/v2"
 
-	"fmt"
 	"index/suffixarray"
 	"io/ioutil"
 	"net/http"
@@ -68,22 +67,28 @@ func handleSearch(searcher Searcher) func(*http.Request) (int, map[string]interf
 	}
 }
 
-func (s *Searcher) Load(filename string) error {
-	dat, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("Load: %w", err)
+func (search *Searcher) Load(file string) (err error) {
+	var data []byte
+	if data, err = ioutil.ReadFile(file); err != nil {
+		return
 	}
-	s.CompleteWorks = string(dat)
-	s.SuffixArray = suffixarray.New(dat)
-	s.size = len(dat)
-	return nil
+
+	search.CompleteWorks = string(data)
+	search.SuffixArray = suffixarray.New(data)
+	search.size = len(data)
+	return
 }
 
-func (s *Searcher) Search(query string) []string {
-	idxs := s.SuffixArray.Lookup([]byte(query), -1)
-	results := []string{}
-	for _, idx := range idxs {
-		results = append(results, s.CompleteWorks[max(0, idx-250):min(s.size, idx+250)])
+func (search *Searcher) Search(query string) (results []string) {
+	var indexes []int = search.SuffixArray.Lookup([]byte(query), -1)
+	results = make([]string, len(indexes))
+
+	var index, head, tail int
+	for index = range indexes {
+		head = max(0, indexes[index]-250)
+		tail = min(search.size, indexes[index]+250)
+		results[index] = search.CompleteWorks[head:tail]
 	}
-	return results
+
+	return
 }
