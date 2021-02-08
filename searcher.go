@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"index/suffixarray"
 	"io/ioutil"
+	"regexp"
 	"strings"
 )
 
 const (
 	RESULT_LIMIT = 128
+)
+
+var (
+	nonLetter *regexp.Regexp = regexp.MustCompile(`[^a-z0-9]+`)
 )
 
 func max(this, that int) (it int) {
@@ -29,6 +34,11 @@ func min(this, that int) (it int) {
 
 	it = this
 	return
+}
+
+type Wordset struct {
+	Word      string
+	Frequency int
 }
 
 type Searcher struct {
@@ -54,15 +64,13 @@ func (search *Searcher) Load(file string) (err error) {
 	var exists bool
 	var field string
 	for _, field = range fields {
+		field = nonLetter.ReplaceAllString(field, "")
 		if _, exists = search.words[field]; !exists {
 			search.words[field] = 1
 		} else {
 			search.words[field]++
 		}
 	}
-
-	fmt.Println(len(fields))
-	fmt.Println(len(search.words))
 
 	return
 }
@@ -76,6 +84,31 @@ func (search *Searcher) Search(query string) (results []string) {
 		head = max(0, indexes[index]-250)
 		tail = min(search.size, indexes[index]+250)
 		results[index] = search.source[head:tail]
+	}
+
+	return
+}
+
+func (search *Searcher) WordsOrdered() (set []Wordset) {
+	set = make([]Wordset, len(search.words))
+
+	var index int = 0
+	var word string
+	var frequency int
+	for word, frequency = range search.words {
+		set[index] = Wordset{word, frequency}
+		index++
+	}
+
+	for index = range set[:len(set)-1] {
+		for set[index].Frequency > set[index+1].Frequency {
+			if index == 0 {
+				break
+			}
+
+			set[index+1], set[index] = set[index], set[index+1]
+			index--
+		}
 	}
 
 	return
