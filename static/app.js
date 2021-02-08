@@ -3,7 +3,7 @@ const Controller = {
     ev.preventDefault();
     const form = document.getElementById("form");
     const data = Object.fromEntries(new FormData(form));
-    const response = fetch(`/search?q=${data.query}`).then((response) => {
+    const response = fetch(`http://search:3001/search?q=${data.query}`).then((response) => {
       response.json().then((results) => {
         Controller.updateTable(results);
       });
