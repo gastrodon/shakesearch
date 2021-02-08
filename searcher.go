@@ -30,9 +30,9 @@ func min(this, that int) (it int) {
 }
 
 type Searcher struct {
-	CompleteWorks string
-	SuffixArray   *suffixarray.Index
-	size          int
+	source      string
+	suffixArray *suffixarray.Index
+	size        int
 }
 
 func (search *Searcher) Load(file string) (err error) {
@@ -41,21 +41,21 @@ func (search *Searcher) Load(file string) (err error) {
 		return
 	}
 
-	search.CompleteWorks = string(data)
-	search.SuffixArray = suffixarray.New(data)
+	search.source = string(data)
+	search.suffixArray = suffixarray.New(data)
 	search.size = len(data)
 	return
 }
 
 func (search *Searcher) Search(query string) (results []string) {
-	var indexes []int = search.SuffixArray.Lookup([]byte(query), RESULT_LIMIT)
+	var indexes []int = search.suffixArray.Lookup([]byte(query), RESULT_LIMIT)
 	results = make([]string, len(indexes))
 
 	var index, head, tail int
 	for index = range indexes {
 		head = max(0, indexes[index]-250)
 		tail = min(search.size, indexes[index]+250)
-		results[index] = search.CompleteWorks[head:tail]
+		results[index] = search.source[head:tail]
 	}
 
 	return
