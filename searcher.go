@@ -5,6 +5,10 @@ import (
 	"io/ioutil"
 )
 
+const (
+	RESULT_LIMIT = 128
+)
+
 func max(this, that int) (it int) {
 	if this < that {
 		it = that
@@ -44,7 +48,7 @@ func (search *Searcher) Load(file string) (err error) {
 }
 
 func (search *Searcher) Search(query string) (results []string) {
-	var indexes []int = search.SuffixArray.Lookup([]byte(query), -1)
+	var indexes []int = search.SuffixArray.Lookup([]byte(query), RESULT_LIMIT)
 	results = make([]string, len(indexes))
 
 	var index, head, tail int
