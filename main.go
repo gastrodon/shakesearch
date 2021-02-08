@@ -13,6 +13,26 @@ const (
 	ROUTE_SEARCH = "^/search/?$"
 )
 
+func max(this, that int) (it int) {
+	if this < that {
+		it = that
+		return
+	}
+
+	it = this
+	return
+}
+
+func min(this, that int) (it int) {
+	if this > that {
+		it = that
+		return
+	}
+
+	it = this
+	return
+}
+
 func main() {
 	var err error
 	var searcher Searcher = Searcher{}
@@ -28,6 +48,7 @@ func main() {
 type Searcher struct {
 	CompleteWorks string
 	SuffixArray   *suffixarray.Index
+	size          int
 }
 
 func handleSearch(searcher Searcher) func(*http.Request) (int, map[string]interface{}, error) {
@@ -54,6 +75,7 @@ func (s *Searcher) Load(filename string) error {
 	}
 	s.CompleteWorks = string(dat)
 	s.SuffixArray = suffixarray.New(dat)
+	s.size = len(dat)
 	return nil
 }
 
@@ -61,7 +83,7 @@ func (s *Searcher) Search(query string) []string {
 	idxs := s.SuffixArray.Lookup([]byte(query), -1)
 	results := []string{}
 	for _, idx := range idxs {
-		results = append(results, s.CompleteWorks[idx-250:idx+250])
+		results = append(results, s.CompleteWorks[max(0, idx-250):min(s.size, idx+250)])
 	}
 	return results
 }
