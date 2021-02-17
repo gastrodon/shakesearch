@@ -72,3 +72,61 @@ func MeanEuclideanDistance(this, that string) (mean float64) {
 	var lengthAverage float64 = float64(len(this)) + float64(len(that))/2
 	return TotalEuclideanDistance(this, that) / lengthAverage
 }
+
+func levenshteinMatrix(source, destination string) (matrix [][]int) {
+	matrix = make([][]int, len(source)+1)
+	var index int
+	for index = range matrix {
+		matrix[index] = make([]int, len(destination)+1)
+	}
+
+	index = 0
+	for index != len(source) {
+		matrix[index+1][0] = index + 1
+		index++
+	}
+
+	index = 0
+	for index != len(destination) {
+		matrix[0][index+1] = index + 1
+		index++
+	}
+
+	return
+}
+
+func LevenshteinDistance(source string, destination string) (distance int) {
+	switch {
+	case source == destination:
+		distance = 0
+		return
+	case source == "":
+		distance = len(destination)
+		return
+	case destination == "":
+		distance = len(source)
+		return
+	}
+
+	var matrix [][]int = levenshteinMatrix(source, destination)
+
+	var sourceD, destD, cost int
+	for sourceD = range matrix[1:] {
+		for destD = range matrix[sourceD][1:] {
+			if source[sourceD] == destination[destD] {
+				cost = 0
+			} else {
+				cost = 1
+			}
+
+			matrix[sourceD+1][destD+1] = min(
+				matrix[sourceD][destD+1]+1,
+				matrix[sourceD+1][destD]+1,
+				matrix[sourceD][destD]+cost,
+			)
+		}
+	}
+
+	distance = matrix[len(source)][len(destination)]
+	return
+}
