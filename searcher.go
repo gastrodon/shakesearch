@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"index/suffixarray"
 	"io/ioutil"
 	"regexp"
@@ -16,23 +15,29 @@ var (
 	nonLetter *regexp.Regexp = regexp.MustCompile(`[^a-z0-9]+`)
 )
 
-func max(this, that int) (it int) {
-	if this < that {
-		it = that
-		return
+func min(candidates ...int) (it int) {
+	it = candidates[0]
+
+	var candidate int
+	for _, candidate = range candidates[1:] {
+		if candidate < it {
+			it = candidate
+		}
 	}
 
-	it = this
 	return
 }
 
-func min(this, that int) (it int) {
-	if this > that {
-		it = that
-		return
+func max(candidates ...int) (it int) {
+	it = candidates[0]
+
+	var candidate int
+	for _, candidate = range candidates[1:] {
+		if candidate > it {
+			it = candidate
+		}
 	}
 
-	it = this
 	return
 }
 
