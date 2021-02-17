@@ -60,10 +60,9 @@ func EuclideanDistance(this, that rune) (distance float64) {
 
 func TotalEuclideanDistance(this, that string) (total float64) {
 	var limit int = min(len(this), len(that))
-	var size float64 = float64(limit)
 	for limit != 0 {
 		limit--
-		mean += EuclideanDistance(rune(this[limit]), rune(that[limit]))
+		total += EuclideanDistance(rune(this[limit]), rune(that[limit]))
 	}
 
 	return
