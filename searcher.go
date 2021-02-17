@@ -59,11 +59,18 @@ func (search *Searcher) Load(file string) (err error) {
 		return
 	}
 
-	search.source = string(data)
-	search.suffixArray = suffixarray.New(data)
-	search.size = len(data)
+	search.LoadString(string(data))
+	return
+}
 
-	var fields []string = strings.Fields(strings.ToLower(search.source))
+func (search *Searcher) LoadString(data string) {
+	var dataBytes []byte = []byte(data)
+
+	search.source = data
+	search.suffixArray = suffixarray.New(dataBytes)
+	search.size = len(dataBytes)
+
+	var fields []string = strings.Fields(strings.ToLower(data))
 	search.words = make(map[string]int, len(fields))
 
 	var exists bool
@@ -76,8 +83,6 @@ func (search *Searcher) Load(file string) (err error) {
 			search.words[field]++
 		}
 	}
-
-	return
 }
 
 func (search *Searcher) Search(query string) (results []string) {
