@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	RESULT_LIMIT = 128
+	DISTANCE_LIMIT  = 3
+	RESULT_LIMIT    = 128
+	SIZE_DIFF_LIMIT = 1
 )
 
 var (
@@ -41,9 +43,23 @@ func max(candidates ...int) (it int) {
 	return
 }
 
+func absolute(source int) (normalized int) {
+	if normalized = source; normalized < 0 {
+		normalized *= -1
+	}
+
+	return
+}
+
 type Wordset struct {
 	Word      string
 	Frequency int
+}
+
+type Similar struct {
+	Source   string
+	Match    string
+	Distance int
 }
 
 type Searcher struct {
@@ -118,6 +134,30 @@ func (search *Searcher) WordsOrdered() (set []Wordset) {
 
 			set[index+1], set[index] = set[index], set[index+1]
 			index--
+		}
+	}
+
+	return
+}
+
+func (search *Searcher) NomatchCandidates(word string) (similar []Similar) {
+	var wordLength int = len(word)
+	var distance int
+	var candidate string
+	for candidate = range search.words {
+		if absolute(len(candidate)-wordLength) > SIZE_DIFF_LIMIT {
+			continue
+		}
+
+		if distance = LevenshteinDistance(word, candidate); distance <= DISTANCE_LIMIT {
+			similar = append(
+				similar,
+				Similar{
+					Source:   word,
+					Match:    candidate,
+					Distance: distance,
+				},
+			)
 		}
 	}
 
