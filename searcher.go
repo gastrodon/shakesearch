@@ -17,6 +17,13 @@ var (
 	nonLetter *regexp.Regexp = regexp.MustCompile(`[^a-z0-9]+`)
 )
 
+type IndexedResult struct {
+	Query  string
+	Result string
+	Head   int
+	Tail   int
+}
+
 func min(candidates ...int) (it int) {
 	it = candidates[0]
 
@@ -110,6 +117,31 @@ func (search *Searcher) Search(query string) (results []string) {
 		head = max(0, indexes[index]-250)
 		tail = min(search.size, indexes[index]+250)
 		results[index] = search.source[head:tail]
+	}
+
+	return
+}
+
+func (search *Searcher) SearchQuote(word string) (results []IndexedResult) {
+	var exists bool
+	if _, exists = search.words[word]; !exists {
+		return
+	}
+
+	var indexes []int = search.suffixArray.Lookup([]byte(word), -1)
+	results = make([]IndexedResult, len(indexes))
+
+	var index, head, tail int
+	for index = range indexes {
+		head = max(0, indexes[index]-250)
+		tail = max(search.size, indexes[index]+250)
+
+		results[index] = IndexedResult{
+			Query:  word,
+			Result: search.source[head:tail],
+			Head:   head,
+			Tail:   tail,
+		}
 	}
 
 	return
